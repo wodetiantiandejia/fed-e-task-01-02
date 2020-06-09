@@ -1,0 +1,122 @@
+第一题
+核心思想:设置引用数，判断当前引用数是否为0，当引用数为0判断是否为垃圾对象，GC对对象空间释放回收
+
+优缺点：
+1发现垃圾时立即回收
+2最大限度减少程序暂停
+1无法回收循环引用的对象
+2时间开销大
+
+第二题 标记整理算法原理
+1标记整理是标记清除的增强操作
+2标记阶段的操作和标记清除一致
+3清除阶段会先执行整理，移动对象位置
+
+第三题
+
+1回收过程采用复制算法和标记整理
+2新生代内存区分为两个等大小空间
+3使用空间为From,空闲空间为To
+4活动对象存储于From空间
+5标记整理后将活动对象拷贝至To
+6From与To交换空间完成释放
+
+第四题
+1标记增量是指将当前一整段的垃圾回收操作拆分为多个小段，来完成整个回收，从而代替之前一口气做的垃圾回收，好处是实现垃圾回收和程序运行交替完成，而不是之前的程序运行时不能垃圾回收，垃圾回收时不能做程序运行。时间消耗比较合理。
+代码题
+练习1
+
+const lastInStock = fp.flowRight(fp.prop('in_stock'),fp.last)
+console.log(lastInStock(cars))
+
+
+练习2:
+const getFirstCarName = fp.flowRight(fp.prop('name'),fp.first)
+log(getFirstCarName(cars))
+//fp.first可替换为fp.head
+
+练习3:
+let averageDollarValue = fp.flowRight(_average,fp.map(car=>car.dollar_value))
+log(averageDollarValue(cars))
+//第二种写法
+//let averageDollorValue = fp.flowRight(_average, fp.map(fp.curry(fp.props)('dollar_value')))
+//console.log(averageDollorValue(cars))
+第三种写法
+  function compose(f,g){
+    return function(value){
+      return f(g(value))
+    }
+  }
+  let _average = function(xs){
+    fp.reduce(fp.add,0,xs) / xs.length
+  }
+
+  let averageDollarValue = function(cars){
+    let dollar_values = fp.map(function(car){
+      return car.dollar_value
+    },cars)
+    return dollar_values
+  }
+
+  let B = compose(_average,averageDollarValue)
+
+练习4:
+let sanitizeNames = fp.flowRight(fp.map(_underscore), fp.map(car => car.name))
+console.log(sanitizeNames(CARS))
+//第二种写法
+const sanitizeNames = fp.map(car=>{
+    car.name = fp.flowRight(_underscore,fp.toLower)(car.name)
+    return car
+})
+log(sanitizeNames(cars))
+//第三种写法
+//let sanitizeNames = fp.flowRight(fp.map(fp.flowRight(fp.toLower, _underscore)))
+//console.log(sanitizeNames(['Hello World'])) // [ 'hello_world' ]
+
+代码二
+练习1
+let maybe = Maybe.of([5, 6, 1])
+let ex1 = undefined
+let ex1 = maybe.map(x => fp.map(fp.add(1), x))
+console.log(ex1)
+
+练习2
+let xs = Container.of(['do', 'ray', 'me', 'fa', 'so', 'la', 'ti', 'do'])
+let ex2 = undefined
+第一种写法
+let ex2 = fp.map(fp.first)
+console.log(xs.map(ex2))
+第二种写法
+let ex2 = ()=> xs.map(fp.first)._value
+第三种写法
+let ex2 = xs.map(x => fp.first(x) ) 
+log(ex2())
+
+练习3
+let safeProp = fp.curry(function (x, o) { return Maybe.of(o[x]) })
+let user = { id: 2, name: "Albert" }
+let ex3 = undefined
+//第一种写法
+let ex3 = fp.flowRight(fp.map(fp.first), safeProp('name'))
+console.log(ex3(user))
+//第二种写法
+let ex3 = safeProp('name',user).map(x => fp.first(x))
+console.log(ex3(user))
+
+练习4
+let ex4 = function (n) {
+  if (n) { return parseInt(n) }
+}
+//第一种写法
+let ex4 = fp.flowRight(fp.map(parseInt), Maybe.of)
+// log(ex4(1)) // 1
+// log(ex4('7')) // 7
+// log(ex4(null)) // undefined
+// log(ex4('null')) // NaN
+// log(ex4('Abc')) // NaN
+// log(ex4(undefined)) // undefined
+// log(ex4({obj:'hhh'})) // NaN
+---------------------------------------------------
+//第二种写法
+let ex4 = n=>Maybe.of(n).map(parseInt)
+console.log(ex4)
